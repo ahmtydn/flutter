@@ -967,7 +967,8 @@ class ScrollableState extends State<Scrollable>
     }
 
     // Apply the overscroll to this scrollable's position
-    final double targetPixels = (position.pixels + overscroll).clamp(
+    final double targetPixels = clampDouble(
+      position.pixels + overscroll,
       position.minScrollExtent,
       position.maxScrollExtent,
     );
