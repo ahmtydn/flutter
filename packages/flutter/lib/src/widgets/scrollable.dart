@@ -932,6 +932,13 @@ class ScrollableState extends State<Scrollable>
       return false;
     }
 
+    // Only handle if scroll axes match.
+    // This prevents horizontal inner scroll from triggering vertical parent scroll
+    // and vice versa (e.g., horizontal ListView in vertical PageView).
+    if (notification.metrics.axis != widget.axis) {
+      return false;
+    }
+
     // Don't interfere if we're not in a state to scroll
     if (_position == null || _physics == null) {
       return false;
