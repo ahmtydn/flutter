@@ -34,6 +34,7 @@ import 'scroll_activity.dart';
 import 'scroll_configuration.dart';
 import 'scroll_context.dart';
 import 'scroll_controller.dart';
+import 'scroll_notification.dart';
 import 'scroll_physics.dart';
 import 'scroll_position.dart';
 import 'scrollable_helpers.dart';
@@ -915,6 +916,64 @@ class ScrollableState extends State<Scrollable>
     _drag = null;
   }
 
+  // DESCENDANT OVERFLOW HANDLING
+
+  /// Handles overscroll notifications from descendant scrollables.
+  ///
+  /// When a descendant scrollable reaches its boundary and overscrolls,
+  /// this method attempts to apply the unused delta to this scrollable,
+  /// enabling seamless scroll delegation between nested scrollables.
+  ///
+  /// This behavior mirrors how [PointerScrollEvent] (mouse wheel) events
+  /// are handled, where unused scroll delta propagates to ancestor scrollables.
+  bool _handleDescendantOverscroll(OverscrollNotification notification) {
+    // Only handle notifications from descendant widgets (depth > 0)
+    if (notification.depth == 0) {
+      return false;
+    }
+
+    // Don't interfere if we're not in a state to scroll
+    if (_position == null || _physics == null) {
+      return false;
+    }
+
+    // Don't handle if physics doesn't accept user offset
+    if (!_physics!.shouldAcceptUserOffset(position)) {
+      return false;
+    }
+
+    final double overscroll = notification.overscroll;
+    if (overscroll == 0.0) {
+      return false;
+    }
+
+    // Calculate if this scrollable can consume the overscroll
+    // Overscroll is positive when scrolling past max extent (scrolling down at bottom)
+    // Overscroll is negative when scrolling past min extent (scrolling up at top)
+    final bool canScrollInDirection =
+        (overscroll > 0 && position.pixels < position.maxScrollExtent) ||
+        (overscroll < 0 && position.pixels > position.minScrollExtent);
+
+    if (!canScrollInDirection) {
+      // Can't scroll in this direction, let notification propagate
+      return false;
+    }
+
+    // Apply the overscroll to this scrollable's position
+    final double targetPixels = (position.pixels + overscroll).clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+
+    if (targetPixels != position.pixels) {
+      // Use pointerScroll to apply the delta properly
+      position.pointerScroll(overscroll);
+      return true; // Consumed, don't propagate further
+    }
+
+    return false;
+  }
+
   // SCROLL WHEEL
 
   // Returns the offset that should result from applying [event] to the current
@@ -1070,6 +1129,14 @@ class ScrollableState extends State<Scrollable>
         child: result,
       );
     }
+
+    // Wrap with NotificationListener to handle descendant overscroll events.
+    // This enables seamless scroll delegation from nested scrollables,
+    // similar to how mouse wheel events propagate to ancestor scrollables.
+    result = NotificationListener<OverscrollNotification>(
+      onNotification: _handleDescendantOverscroll,
+      child: result,
+    );
 
     return result;
   }
