@@ -5,7 +5,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'list_tile_test_utils.dart';
 import 'widgets_app_tester.dart';
 
 void main() {
@@ -137,7 +136,7 @@ void main() {
             body: ListView.builder(
               itemCount: 30,
               itemBuilder: (BuildContext context, int index) {
-                return TestListTile(title: Text('NSV Item $index'));
+                return Text('NSV Item $index');
               },
             ),
           ),
