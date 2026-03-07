@@ -97,7 +97,7 @@ class ScrollBehavior {
       delegate: this,
       scrollbars: scrollbars ?? true,
       overscroll: overscroll ?? true,
-      delegateOverscroll: delegateOverscroll ?? this.delegateOverscroll,
+      delegateOverscroll: delegateOverscroll,
       dragDevices: dragDevices,
       multitouchDragStrategy: multitouchDragStrategy,
       pointerAxisModifiers: pointerAxisModifiers,
@@ -294,27 +294,30 @@ class _WrappedScrollBehavior implements ScrollBehavior {
     required this.delegate,
     this.scrollbars = true,
     this.overscroll = true,
-    this.delegateOverscroll = false,
+    bool? delegateOverscroll,
     Set<PointerDeviceKind>? dragDevices,
     this.multitouchDragStrategy,
     Set<LogicalKeyboardKey>? pointerAxisModifiers,
     this.physics,
     this.platform,
     this.keyboardDismissBehavior,
-  }) : _dragDevices = dragDevices,
+  }) : _delegateOverscroll = delegateOverscroll,
+       _dragDevices = dragDevices,
        _pointerAxisModifiers = pointerAxisModifiers;
 
   final ScrollBehavior delegate;
   final bool scrollbars;
   final bool overscroll;
-  @override
-  final bool delegateOverscroll;
   final ScrollPhysics? physics;
   final TargetPlatform? platform;
   final ScrollViewKeyboardDismissBehavior? keyboardDismissBehavior;
+  final bool? _delegateOverscroll;
   final Set<PointerDeviceKind>? _dragDevices;
   final MultitouchDragStrategy? multitouchDragStrategy;
   final Set<LogicalKeyboardKey>? _pointerAxisModifiers;
+
+  @override
+  bool get delegateOverscroll => _delegateOverscroll ?? delegate.delegateOverscroll;
 
   @override
   Set<PointerDeviceKind> get dragDevices => _dragDevices ?? delegate.dragDevices;
@@ -359,10 +362,10 @@ class _WrappedScrollBehavior implements ScrollBehavior {
     return delegate.copyWith(
       scrollbars: scrollbars ?? this.scrollbars,
       overscroll: overscroll ?? this.overscroll,
-      delegateOverscroll: delegateOverscroll ?? this.delegateOverscroll,
-      dragDevices: dragDevices ?? this.dragDevices,
+      delegateOverscroll: delegateOverscroll ?? _delegateOverscroll,
+      dragDevices: dragDevices ?? _dragDevices,
       multitouchDragStrategy: multitouchDragStrategy ?? this.multitouchDragStrategy,
-      pointerAxisModifiers: pointerAxisModifiers ?? this.pointerAxisModifiers,
+      pointerAxisModifiers: pointerAxisModifiers ?? _pointerAxisModifiers,
       physics: physics ?? this.physics,
       platform: platform ?? this.platform,
       keyboardDismissBehavior: keyboardDismissBehavior ?? this.keyboardDismissBehavior,
