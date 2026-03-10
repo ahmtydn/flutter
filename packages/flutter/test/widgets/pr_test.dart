@@ -146,7 +146,7 @@ void main() {
       );
 
       // Bubble the notification.
-      notification.dispatch(scrollableState.context);
+      notification.dispatch(tester.element(find.text('IntermediateContent')));
       await tester.pumpAndSettle();
 
       // Math:

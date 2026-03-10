@@ -940,7 +940,10 @@ class ScrollableState extends State<Scrollable>
       return false;
     }
     final double newPixels = position.pixels + overscroll;
-    final double remainingOverscroll = position.physics.applyBoundaryConditions(position, newPixels);
+    final double remainingOverscroll = position.physics.applyBoundaryConditions(
+      position,
+      newPixels,
+    );
     final double acceptedDelta = overscroll - remainingOverscroll;
 
     if (acceptedDelta.abs() <= precisionErrorTolerance) {
