@@ -84,7 +84,6 @@ void main() {
     testWidgets('ISSUE 2: Partial overscroll consumption loss', (WidgetTester tester) async {
       final rootController = ScrollController();
       final intermediateController = ScrollController();
-      const innerKey = Key('inner');
 
       // Setup: Intermediate has 150px of scrollable room.
       // We will scroll it to 100px, leaving exactly 50px left.
