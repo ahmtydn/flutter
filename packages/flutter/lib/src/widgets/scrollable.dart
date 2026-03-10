@@ -920,8 +920,7 @@ class ScrollableState extends State<Scrollable>
     if (notification.depth == 0) {
       return false;
     }
-
-    if (notification.metrics.axisDirection != widget.axisDirection) {
+    if (notification.metrics.axisDirection != axisDirection) {
       return false;
     }
 
@@ -929,13 +928,13 @@ class ScrollableState extends State<Scrollable>
       return false;
     }
 
+    final ScrollPosition position = this.position;
     if (!_physics!.shouldAcceptUserOffset(position)) {
       return false;
     }
     if (!_configuration.delegateOverscroll) {
       return false;
     }
-
     final double overscroll = notification.overscroll;
     if (overscroll == 0.0) {
       return false;
