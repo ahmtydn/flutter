@@ -238,22 +238,29 @@ class ScrollPositionWithSingleContext extends ScrollPosition implements ScrollAc
   @override
   void applyDelegatedOverscroll(double delta, {double velocity = 0.0}) {
     if (delta == 0.0) {
+      // Delegation ended (e.g., gesture finished). Settle with the
+      // remaining velocity. This transitions away from the
+      // DelegatedOverscrollActivity, triggering a single
+      // ScrollEndNotification via beginActivity.
       goBallistic(velocity);
       return;
     }
-    goIdle();
+
+    // Start a persistent DelegatedOverscrollActivity if not already in one.
+    // beginActivity handles the ScrollStartNotification exactly once when
+    // transitioning from a non-scrolling to a scrolling activity.
+    if (activity is! DelegatedOverscrollActivity) {
+      beginActivity(DelegatedOverscrollActivity(this));
+    }
+
     updateUserScrollDirection(-delta > 0.0 ? ScrollDirection.forward : ScrollDirection.reverse);
     final double oldPixels = pixels;
-    isScrollingNotifier.value = true;
     final double overscroll = applyBoundaryConditions(pixels + delta);
     final double newPixels = pixels + delta - overscroll;
     if (newPixels != oldPixels) {
       forcePixels(newPixels);
-      didStartScroll();
       didUpdateScrollPositionBy(pixels - oldPixels);
-      didEndScroll();
     }
-    goBallistic(velocity);
   }
 
   // flutter_ignore: deprecation_syntax, https://github.com/flutter/flutter/issues/44609
