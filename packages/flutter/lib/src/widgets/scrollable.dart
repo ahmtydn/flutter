@@ -941,16 +941,23 @@ class ScrollableState extends State<Scrollable>
       return false;
     }
     final double newPixels = position.pixels + overscroll;
-    final double acceptedDelta =
-        overscroll - position.physics.applyBoundaryConditions(position, newPixels);
+    final double remainingOverscroll = position.physics.applyBoundaryConditions(position, newPixels);
+    final double acceptedDelta = overscroll - remainingOverscroll;
 
-    final bool canScrollInDirection = acceptedDelta.abs() > precisionErrorTolerance;
-
-    if (!canScrollInDirection) {
+    if (acceptedDelta.abs() <= precisionErrorTolerance) {
       return false;
     }
 
     position.applyDelegatedOverscroll(overscroll, velocity: notification.velocity);
+
+    if (remainingOverscroll.abs() > precisionErrorTolerance) {
+      OverscrollNotification(
+        metrics: position,
+        context: context,
+        overscroll: remainingOverscroll,
+        velocity: notification.velocity,
+      ).dispatch(context);
+    }
     return true;
   }
 
