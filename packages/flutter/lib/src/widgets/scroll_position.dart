@@ -950,6 +950,11 @@ abstract class ScrollPosition extends ViewportOffset with ScrollMetrics {
   /// update the [ScrollDirection].
   void pointerScroll(double delta);
 
+  /// Subclasses can override this method to handle delegated overscroll.
+  ///
+  /// The default implementation does nothing.
+  void applyDelegatedOverscroll(double delta, {double velocity = 0.0}) {}
+
   /// Calls [jumpTo] if duration is null or [Duration.zero], otherwise
   /// [animateTo] is called.
   ///

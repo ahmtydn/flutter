@@ -235,27 +235,8 @@ class ScrollPositionWithSingleContext extends ScrollPosition implements ScrollAc
     }
   }
 
-  /// Applies a scroll [delta] to the position while respecting the current
-  /// [physics] boundary conditions, and transfers [velocity] to the physics
-  /// simulation.
-  ///
-  /// Unlike [pointerScroll], which hard-clamps the scroll offset to the
-  /// [minScrollExtent] and [maxScrollExtent], this method routes the delta
-  /// through [applyBoundaryConditions]. This allows [ScrollPhysics] that
-  /// support overscroll (like [BouncingScrollPhysics]) to go out of bounds,
-  /// creating bounce or stretch effects.
-  ///
-  /// The [velocity] parameter represents the scroll velocity at the time of
-  /// the update. It is passed to [goBallistic] to allow the physics to settle
-  /// the position naturally, which is essential for seamless momentum
-  /// transfer during overscroll delegation.
-  ///
-  /// This is typically used by ancestor [Scrollable]s when handling an
-  /// [OverscrollNotification] from a descendant, provided that overscroll
-  /// delegation is enabled in the [ScrollBehavior].
-  void applyScrollDeltaWithPhysics(double delta, {double velocity = 0.0}) {
-    // If an update is made here, consider if the same (or similar) change
-    // should be made in _NestedScrollCoordinator.applyScrollDeltaWithPhysics.
+  @override
+  void applyDelegatedOverscroll(double delta, {double velocity = 0.0}) {
     if (delta == 0.0) {
       goBallistic(velocity);
       return;
@@ -263,14 +244,7 @@ class ScrollPositionWithSingleContext extends ScrollPosition implements ScrollAc
     goIdle();
     updateUserScrollDirection(-delta > 0.0 ? ScrollDirection.forward : ScrollDirection.reverse);
     final double oldPixels = pixels;
-    // Set the notifier before calling forcePixels.
-    // This is set to false again after going ballistic below.
     isScrollingNotifier.value = true;
-    // Route through applyBoundaryConditions instead of hard-clamping.
-    // For BouncingScrollPhysics, applyBoundaryConditions returns 0.0,
-    // allowing the position to go past the extents.
-    // For ClampingScrollPhysics, applyBoundaryConditions returns the excess,
-    // so the position is clamped as before.
     final double overscroll = applyBoundaryConditions(pixels + delta);
     final double newPixels = pixels + delta - overscroll;
     if (newPixels != oldPixels) {
@@ -279,10 +253,6 @@ class ScrollPositionWithSingleContext extends ScrollPosition implements ScrollAc
       didUpdateScrollPositionBy(pixels - oldPixels);
       didEndScroll();
     }
-    // Pass velocity to goBallistic so that fling momentum is transferred
-    // from the descendant scrollable to this one. For touch-driven
-    // overscrolls, velocity is 0.0 and goBallistic creates a
-    // BouncingScrollSimulation that springs back.
     goBallistic(velocity);
   }
 
