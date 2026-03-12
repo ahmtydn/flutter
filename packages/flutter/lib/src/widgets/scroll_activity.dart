@@ -808,3 +808,38 @@ class DrivenScrollActivity extends ScrollActivity {
     return '${describeIdentity(this)}($_controller)';
   }
 }
+
+/// The activity a scroll view performs when receiving delegated overscroll
+/// from a descendant scrollable.
+///
+/// When a descendant [Scrollable] reaches its scroll boundary and overscrolls,
+/// the unused delta can be delegated to an ancestor scrollable. This activity
+/// remains active for the duration of the delegation, ensuring that only a
+/// single [ScrollStartNotification] is dispatched when delegation begins and
+/// a single [ScrollEndNotification] when it ends.
+///
+/// This is analogous to [DragScrollActivity]: a single persistent activity
+/// that lives across multiple frames of a continuous gesture. The
+/// [ScrollPosition.beginActivity] method automatically manages the
+/// notification lifecycle based on the [isScrolling] state transition.
+///
+/// See also:
+///
+///  * [DragScrollActivity], which similarly manages a persistent scroll
+///    activity during a continuous drag gesture.
+///  * [ScrollPositionWithSingleContext.applyDelegatedOverscroll], which
+///    creates and reuses this activity.
+class DelegatedOverscrollActivity extends ScrollActivity {
+  /// Creates an activity for when a descendant scrollable is delegating
+  /// overscroll to this scroll position.
+  DelegatedOverscrollActivity(super.delegate);
+
+  @override
+  bool get shouldIgnorePointer => false;
+
+  @override
+  bool get isScrolling => true;
+
+  @override
+  double get velocity => 0.0;
+}

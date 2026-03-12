@@ -950,10 +950,27 @@ abstract class ScrollPosition extends ViewportOffset with ScrollMetrics {
   /// update the [ScrollDirection].
   void pointerScroll(double delta);
 
-  /// Subclasses can override this method to handle delegated overscroll.
+  /// Applies a delegated overscroll [delta] from a descendant scrollable.
   ///
-  /// The default implementation does nothing.
-  void applyDelegatedOverscroll(double delta, {double velocity = 0.0}) {}
+  /// When a descendant [Scrollable] reaches its scroll boundary, it can
+  /// delegate the unused scroll delta to an ancestor scrollable. This method
+  /// handles applying that delta while respecting the current [physics].
+  ///
+  /// The [velocity] parameter represents the scroll velocity at the time of
+  /// the delegation. When [delta] is zero, the delegation has ended and a
+  /// ballistic simulation should be started with the given [velocity].
+  ///
+  /// Subclasses should override this method to provide physics-aware
+  /// delegation behavior. The default implementation is a no-op that returns
+  /// the original delta.
+  ///
+  /// See also:
+  ///
+  ///  * [ScrollPositionWithSingleContext.applyDelegatedOverscroll], which
+  ///    provides the standard implementation using [DelegatedOverscrollActivity].
+  double applyDelegatedOverscroll(double delta, {double velocity = 0.0}) {
+    return delta;
+  }
 
   /// Calls [jumpTo] if duration is null or [Duration.zero], otherwise
   /// [animateTo] is called.

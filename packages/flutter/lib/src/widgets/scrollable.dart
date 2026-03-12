@@ -935,22 +935,22 @@ class ScrollableState extends State<Scrollable>
     if (!_configuration.delegateOverscroll) {
       return false;
     }
+
     final double overscroll = notification.overscroll;
     if (overscroll == 0.0) {
       return false;
     }
-    final double newPixels = position.pixels + overscroll;
-    final double remainingOverscroll = position.physics.applyBoundaryConditions(
-      position,
-      newPixels,
-    );
-    final double acceptedDelta = overscroll - remainingOverscroll;
 
-    if (acceptedDelta.abs() <= precisionErrorTolerance) {
+    final double remainingOverscroll = position.applyDelegatedOverscroll(
+      overscroll,
+      velocity: notification.velocity,
+    );
+
+    final double consumedDelta = overscroll - remainingOverscroll;
+
+    if (consumedDelta.abs() <= precisionErrorTolerance) {
       return false;
     }
-
-    position.applyDelegatedOverscroll(overscroll, velocity: notification.velocity);
 
     if (remainingOverscroll.abs() > precisionErrorTolerance) {
       OverscrollNotification(
@@ -961,6 +961,13 @@ class ScrollableState extends State<Scrollable>
       ).dispatch(context);
     }
     return true;
+  }
+
+  bool _handleDescendantScrollEnd(ScrollEndNotification notification) {
+    if (notification.depth > 0 && _position != null) {
+      position.applyDelegatedOverscroll(0.0);
+    }
+    return false;
   }
 
   // SCROLL WHEEL
@@ -1129,7 +1136,10 @@ class ScrollableState extends State<Scrollable>
     if (_configuration.delegateOverscroll) {
       result = NotificationListener<OverscrollNotification>(
         onNotification: _handleDescendantOverscroll,
-        child: result,
+        child: NotificationListener<ScrollEndNotification>(
+          onNotification: _handleDescendantScrollEnd,
+          child: result,
+        ),
       );
     }
 
